@@ -21,14 +21,14 @@
   hetzner.hcloud.hcloud_load_balancer:
     api_token: "{{ hcloud_token }}"
     name: "swarmlb"
-    load_balancer_type: "{{ swarm_lb_type }}"
-    location: "{{ server_location }}"
+    load_balancer_type: "{{ swarmsible_hetzner_loadbalancer_type }}"
+    location: "{{ swarmsible_hetzner_server_location }}"
     state: present
 
-- name: "Add swarmlb to {{ hetzner_swarm_network_name }}"
+- name: "Add swarmlb to {{ swarmsible_hetzner_swarm_network_name }}"
   hetzner.hcloud.hcloud_load_balancer_network:
     api_token: "{{ hcloud_token }}"
-    network: "{{ hetzner_swarm_network_name }}"
+    network: "{{ swarmsible_hetzner_swarm_network_name }}"
     load_balancer: "swarmlb"
     ip: 192.168.0.2
     state: present
@@ -41,7 +41,7 @@
     label_selector: swarm_role=manager
     use_private_ip: true
     state: present
-  when: "managers_part_of_lb | bool"
+  when: "swarmsible_hetzner_managers_part_of_lb | bool"
 
 - name: Add swarm worker nodes to load balancer
   hetzner.hcloud.hcloud_load_balancer_target:
@@ -51,16 +51,16 @@
     label_selector: swarm_role=worker
     use_private_ip: true
     state: present
-  when: "managers_part_of_lb | bool"
+  when: "swarmsible_hetzner_managers_part_of_lb | bool"
 
 - name: Create certificate
   hetzner.hcloud.hcloud_certificate:
-    name: "{{ swarm_lb_certificate_name }}"
+    name: "{{ swarmsible_hetzner_loadbalancer_certificate_name }}"
     api_token: "{{ hcloud_token }}"
-    domain_names: "{{ swarm_lb_certificate_domain_names }}"
+    domain_names: "{{ swarmsible_hetzner_loadbalancer_certificate_domain_names }}"
     state: present
     type: 'managed'
-  when: "swarm_lb_certificate_type == 'managed'"
+  when: "swarmsible_hetzner_loadbalancer_certificate_type == 'managed'"
 
 - name: Create Load Balancer service with Port 443 (work around, creating a new load balancer with health_check fails)
   hetzner.hcloud.hcloud_load_balancer_service:
@@ -72,7 +72,7 @@
     http:
       redirect_http: true
       certificates:
-        - "{{ swarm_lb_certificate_name }}"
+        - "{{ swarmsible_hetzner_loadbalancer_certificate_name }}"
   when: not swarm_lb_found | bool
 
 - name: Create Load Balancer service with Port 443
@@ -90,4 +90,4 @@
     http:
       redirect_http: true
       certificates:
-        - "{{ swarm_lb_certificate_name }}"
+        - "{{ swarmsible_hetzner_loadbalancer_certificate_name }}"

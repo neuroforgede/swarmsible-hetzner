@@ -1,6 +1,6 @@
-- name: "Create {{ hetzner_ansible_root_ssh_key_name }} ssh_key"
+- name: "Create {{ swarmsible_swarmsible_hetzner_ansible_root_ssh_key_name }} ssh_key"
   hcloud_ssh_key:
-    name: "{{ hetzner_ansible_root_ssh_key_name }}"
-    public_key: "{{ lookup('ansible.builtin.file', hetzner_ansible_root_ssh_key) }}"
+    name: "{{ swarmsible_swarmsible_hetzner_ansible_root_ssh_key_name }}"
+    public_key: "{{ lookup('ansible.builtin.file', swarmsible_hetzner_ansible_root_ssh_key) }}"
     state: present
     api_token: "{{ hcloud_token }}"
