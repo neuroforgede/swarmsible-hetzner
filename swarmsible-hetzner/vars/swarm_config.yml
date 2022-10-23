@@ -16,6 +16,8 @@ swarm_lb_certificate_type: 'managed'
 
 managers_part_of_lb: true
 
-hetzner_ansible_ssh_key_name: ansible_root_rsa
+hetzner_ansible_root_ssh_key_name: ansible_root_rsa
+
+hetzner_ansible_root_ssh_key: "{{ playbook_dir + '/ssh_keys/root_rsa.pub' }}"
 
 hetzner_swarm_network_name: swarm_network

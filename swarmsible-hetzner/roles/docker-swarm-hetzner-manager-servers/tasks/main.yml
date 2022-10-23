@@ -6,7 +6,7 @@
     image: "{{ server_image }}"
     location: "{{ server_location }}"
     ssh_keys: 
-      - "{{ hetzner_ansible_ssh_key_name }}"
+      - "{{ hetzner_ansible_root_ssh_key_name }}"
     labels:
       swarm_role: "manager"
     state: present

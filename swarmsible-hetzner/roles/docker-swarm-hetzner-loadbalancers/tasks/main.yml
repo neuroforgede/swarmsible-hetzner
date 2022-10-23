@@ -1,3 +1,22 @@
+- name: Gather hcloud load_balancer infos
+  hetzner.hcloud.hcloud_load_balancer_info:
+  register: hcloud_load_balancer_info_output
+
+- set_fact:
+    swarm_lb_found: "{{ 
+      (swarm_lb_config | length) == 1
+      and
+      (
+            (swarm_lb_config[0].services | length) == 1
+        and ('health_check' in swarm_lb_config[0].services[0])
+        and ('http' in swarm_lb_config[0].services[0]['health_check'])
+        and ('certificates' in swarm_lb_config[0].services[0]['health_check']['http'])
+        and ('404' in swarm_lb_config[0].services[0]['health_check']['http']['certificates'])
+      )
+      }}"
+  vars:
+    swarm_lb_config: "{{ hcloud_load_balancer_info_output.hcloud_load_balancer_info | selectattr('name', 'equalto', 'swarmlb') | list }}"
+
 - name: Create a basic Load Balancer
   hetzner.hcloud.hcloud_load_balancer:
     api_token: "{{ hcloud_token }}"
@@ -34,7 +53,7 @@
     state: present
   when: "managers_part_of_lb | bool"
 
-- name: Create a basic certificate
+- name: Create certificate
   hetzner.hcloud.hcloud_certificate:
     name: "{{ swarm_lb_certificate_name }}"
     api_token: "{{ hcloud_token }}"
@@ -43,7 +62,20 @@
     type: 'managed'
   when: "swarm_lb_certificate_type == 'managed'"
 
-- name: Create a basic Load Balancer service with Port 443
+- name: Create Load Balancer service with Port 443 (work around, creating a new load balancer with health_check fails)
+  hetzner.hcloud.hcloud_load_balancer_service:
+    api_token: "{{ hcloud_token }}"
+    load_balancer: "swarmlb"
+    protocol: https
+    listen_port: 443
+    state: present
+    http:
+      redirect_http: true
+      certificates:
+        - "{{ swarm_lb_certificate_name }}"
+  when: not swarm_lb_found | bool
+
+- name: Create Load Balancer service with Port 443
   hetzner.hcloud.hcloud_load_balancer_service:
     api_token: "{{ hcloud_token }}"
     load_balancer: "swarmlb"
@@ -53,7 +85,6 @@
     health_check:
       http:
         status_codes:
-          # 404 as we dont specify a hostname - traefik will respond with a 404
           - "404"
         tls: no
     http:
