@@ -1,0 +1,28 @@
+- name: create worker servers
+  hcloud_server:
+    api_token: "{{ hcloud_token }}"
+    name: "worker-{{ item }}"
+    server_type: "{{ worker_server_type }}"
+    image: "{{ server_image }}"
+    location: "{{ server_location }}"
+    ssh_keys: 
+      - "{{ hetzner_ansible_ssh_key_name }}"
+    labels:
+      swarm_role: "worker"
+    state: present
+  register: worker_servers
+  with_sequence: start=1 end={{ worker_count }}
+
+- name: Attach workers to server network
+  hcloud_server_network:
+    api_token: "{{ hcloud_token }}"
+    network: "{{ hetzner_swarm_network_name }}"
+    server: "worker-{{ item }}"
+    ip: "192.168.2.{{ (item | int) + 1 }}"
+    state: present
+  with_sequence: start=1 end={{ worker_count }}
+
+- name: list server
+  hcloud_server_info:
+    api_token: "{{ hcloud_token }}"
+  register: servers_list

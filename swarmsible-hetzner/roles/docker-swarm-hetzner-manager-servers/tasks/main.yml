@@ -1,0 +1,23 @@
+- name: create manager servers
+  hcloud_server:
+    api_token: "{{ hcloud_token }}"
+    name: "manager-{{ item }}"
+    server_type: "{{ manager_server_type }}"
+    image: "{{ server_image }}"
+    location: "{{ server_location }}"
+    ssh_keys: 
+      - "{{ hetzner_ansible_ssh_key_name }}"
+    labels:
+      swarm_role: "manager"
+    state: present
+  register: manager_servers
+  with_sequence: start=1 end={{ manager_count }}
+
+- name: Attach managers to server network
+  hcloud_server_network:
+    api_token: "{{ hcloud_token }}"
+    network: "{{ hetzner_swarm_network_name }}"
+    server: "manager-{{ item }}"
+    ip: "192.168.1.{{ (item | int) + 1 }}"
+    state: present
+  with_sequence: start=1 end={{ manager_count }}
