@@ -7,6 +7,7 @@
   vars_files:
     - "{{ swarmsible_vars_path }}/hcloud_token.yml"
     - "{{ swarmsible_vars_path }}/swarm_config.yml"
+    - "{{ swarmsible_vars_path }}/hetzner_dns_token.yml"
   roles:
     - docker-swarm-hetzner-firewalls
     - docker-swarm-hetzner-networks
