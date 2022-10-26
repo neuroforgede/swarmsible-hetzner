@@ -96,5 +96,30 @@
   hetzner.hcloud.hcloud_load_balancer_info:
   register: hcloud_load_balancer_info_output
 
-- debug:
-    var: hcloud_load_balancer_info_output
+- set_fact:
+    swarm_lb_ipv4_address: "{{ swarm_lb_config[0].ipv4_address }}"
+    swarm_lb_ipv6_address: "{{ swarm_lb_config[0].ipv6_address }}"
+  vars:
+    swarm_lb_config: "{{ hcloud_load_balancer_info_output.hcloud_load_balancer_info | selectattr('name', 'equalto', 'swarmlb') | list }}"
+
+- name: Add configured DNS A records
+  community.dns.hetzner_dns_record_set:
+    state: present
+    zone: "{{ item.zone }}"
+    record: "{{ item.record }}"
+    type: A
+    ttl: "{{ item.ttl }}"
+    value: "{{ swarm_lb_ipv4_address }}"
+    hetzner_token: "{{ hetzner_dns_token }}"
+  with_items: "{{ swarmsible_hetzner_loadbalancer_dns_A }}"
+
+- name: Add configured DNS AAAA records
+  community.dns.hetzner_dns_record_set:
+    state: present
+    zone: "{{ item.zone }}"
+    record: "{{ item.record }}"
+    type: AAAA
+    ttl: "{{ item.ttl }}"
+    value: "{{ swarm_lb_ipv6_address }}"
+    hetzner_token: "{{ hetzner_dns_token }}"
+  with_items: "{{ swarmsible_hetzner_loadbalancer_dns_AAAA }}"
