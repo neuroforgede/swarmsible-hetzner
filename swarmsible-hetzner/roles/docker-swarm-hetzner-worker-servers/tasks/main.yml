@@ -1,7 +1,7 @@
 - name: create worker servers
   hcloud_server:
     api_token: "{{ hcloud_token }}"
-    name: "worker-{{ item }}"
+    name: "{{ swarmsible_hetzner_worker_name_prefix | default('worker-') }}{{ item }}"
     server_type: "{{ swarmsible_hetzner_worker_server_type }}"
     image: "{{ swarmsible_hetzner_server_image }}"
     location: "{{ swarmsible_hetzner_server_location }}"
@@ -17,7 +17,7 @@
   hcloud_server_network:
     api_token: "{{ hcloud_token }}"
     network: "{{ swarmsible_hetzner_swarm_network_name }}"
-    server: "worker-{{ item }}"
+    server: "{{ swarmsible_hetzner_worker_name_prefix | default('worker-') }}{{ item }}"
     ip: "192.168.2.{{ (item | int) + 1 }}"
     state: present
   with_sequence: start=1 end={{ swarmsible_hetzner_worker_count }}

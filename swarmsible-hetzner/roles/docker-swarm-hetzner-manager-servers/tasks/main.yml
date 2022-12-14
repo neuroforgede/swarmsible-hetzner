@@ -1,7 +1,7 @@
 - name: create manager servers
   hcloud_server:
     api_token: "{{ hcloud_token }}"
-    name: "manager-{{ item }}"
+    name: "{{ swarmsible_hetzner_manager_name_prefix | default('manager-') }}{{ item }}"
     server_type: "{{ swarmsible_hetzner_manager_server_type }}"
     image: "{{ swarmsible_hetzner_server_image }}"
     location: "{{ swarmsible_hetzner_server_location }}"
@@ -17,7 +17,7 @@
   hcloud_server_network:
     api_token: "{{ hcloud_token }}"
     network: "{{ swarmsible_hetzner_swarm_network_name }}"
-    server: "manager-{{ item }}"
+    server: "{{ swarmsible_hetzner_manager_name_prefix | default('manager-') }}{{ item }}"
     ip: "192.168.1.{{ (item | int) + 1 }}"
     state: present
   with_sequence: start=1 end={{ swarmsible_hetzner_manager_count }}
