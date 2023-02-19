@@ -9,6 +9,8 @@
       - "{{ swarmsible_swarmsible_hetzner_ansible_root_ssh_key_name }}"
     labels:
       swarm_role: "manager"
+    firewalls:
+      - "swarm-servers"
     state: present
   register: manager_servers
   with_sequence: start=1 end={{ swarmsible_hetzner_manager_count }}
