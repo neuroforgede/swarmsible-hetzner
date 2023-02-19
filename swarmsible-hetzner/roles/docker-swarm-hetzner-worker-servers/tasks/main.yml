@@ -11,6 +11,8 @@
         - "{{ swarmsible_swarmsible_hetzner_ansible_root_ssh_key_name }}"
       labels:
         swarm_role: "worker"
+      firewalls:
+        - "swarm-servers"
       state: present
     register: worker_servers
     # hack. condition on block against this though
