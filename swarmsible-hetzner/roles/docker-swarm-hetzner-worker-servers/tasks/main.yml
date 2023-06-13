@@ -14,6 +14,7 @@
       firewalls:
         - "swarm-servers"
       state: present
+      enable_ipv6: "{{ swarmsible_nodes_enable_ipv6 | default(False) | bool }}"
     register: worker_servers
     # hack. condition on block against this though
     with_sequence: start=1 end={{ swarmsible_hetzner_worker_count if swarmsible_hetzner_worker_count | int > 0 else 1 }}
