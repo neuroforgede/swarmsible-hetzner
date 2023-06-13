@@ -12,6 +12,7 @@
     firewalls:
       - "swarm-servers"
     state: present
+    enable_ipv6: "{{ swarmsible_nodes_enable_ipv6 | default(False) | bool }}"
   register: manager_servers
   with_sequence: start=1 end={{ swarmsible_hetzner_manager_count }}
 
