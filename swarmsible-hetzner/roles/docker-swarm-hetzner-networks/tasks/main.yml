@@ -1,5 +1,5 @@
 - name: "Create networks [default]"
-  when: not swarmsible_hetzner_swarm_private_network_enabled | default('False') | bool
+  when: not swarmsible_hetzner_custom_private_network_enabled | default('False') | bool
   block:
     - name: "Create {{ swarmsible_hetzner_swarm_network_name }} network"
       hcloud_network:
@@ -36,20 +36,20 @@
         state: present
 
 - name: "Create networks [custom private network]"
-  when: swarmsible_hetzner_swarm_private_network_enabled | default('False') | bool
+  when: swarmsible_hetzner_custom_private_network_enabled | default('False') | bool
   block:
     - name: "Create {{ swarmsible_hetzner_swarm_network_name }} network"
       hcloud_network:
         api_token: "{{ hcloud_token }}"
         name: "{{ swarmsible_hetzner_swarm_network_name }}"
-        ip_range: "{{ swarmsible_hetzner_swarm_private_network }}"
+        ip_range: "{{ swarmsible_hetzner_custom_private_network }}"
         state: present
 
     - name: Create auxiliary subnetwork
       hcloud_subnetwork:
         api_token: "{{ hcloud_token }}"
         network: "{{ swarmsible_hetzner_swarm_network_name }}"
-        ip_range: "{{ swarmsible_hetzner_swarm_private_network | ipsubnet(4, 0) }}"
+        ip_range: "{{ swarmsible_hetzner_custom_private_network | ipsubnet(26, 0) }}"
         network_zone: eu-central
         type: cloud
         state: present
@@ -58,7 +58,7 @@
       hcloud_subnetwork:
         api_token: "{{ hcloud_token }}"
         network: "{{ swarmsible_hetzner_swarm_network_name }}"
-        ip_range: "{{ swarmsible_hetzner_swarm_private_network | ipsubnet(4, 1) }}"
+        ip_range: "{{ swarmsible_hetzner_custom_private_network | ipsubnet(26, 1) }}"
         network_zone: eu-central
         type: cloud
         state: present
@@ -67,7 +67,7 @@
       hcloud_subnetwork:
         api_token: "{{ hcloud_token }}"
         network: "{{ swarmsible_hetzner_swarm_network_name }}"
-        ip_range: "{{ swarmsible_hetzner_swarm_private_network | ipsubnet(4, 2) }}"
+        ip_range: "{{ swarmsible_hetzner_custom_private_network | ipsubnet(26, 2) }}"
         network_zone: eu-central
         type: cloud
         state: present

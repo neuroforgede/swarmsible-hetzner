@@ -32,16 +32,16 @@
     load_balancer: "swarmlb"
     ip: "192.168.0.2"
     state: present
-  when: not swarmsible_hetzner_swarm_private_network_enabled | default('False') | bool
+  when: not swarmsible_hetzner_custom_private_network_enabled | default('False') | bool
 
 - name: "Add swarmlb to {{ swarmsible_hetzner_swarm_network_name }} [custom private network]"
   hetzner.hcloud.hcloud_load_balancer_network:
     api_token: "{{ hcloud_token }}"
     network: "{{ swarmsible_hetzner_swarm_network_name }}"
     load_balancer: "swarmlb"
-    ip: "{{ swarmsible_hetzner_swarm_private_network | ipsubnet(4, 0) | ipaddr('2') }}"
+    ip: "{{ swarmsible_hetzner_custom_private_network | ipsubnet(26, 0) | ipaddr('2') | ipaddr('address') }}"
     state: present
-  when: swarmsible_hetzner_swarm_private_network_enabled | default('False') | bool
+  when: swarmsible_hetzner_custom_private_network_enabled | default('False') | bool
 
 - name: Add swarm manager nodes to load balancer
   hetzner.hcloud.hcloud_load_balancer_target:

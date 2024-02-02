@@ -24,14 +24,14 @@
     ip: "192.168.1.{{ (item | int) + 1 }}"
     state: present
   with_sequence: start=1 end={{ swarmsible_hetzner_manager_count }}
-  when: not swarmsible_hetzner_swarm_private_network_enabled | default('False') | bool
+  when: not swarmsible_hetzner_custom_private_network_enabled | default('False') | bool
 
 - name: Attach managers to server network [custom private network]
   hcloud_server_network:
     api_token: "{{ hcloud_token }}"
     network: "{{ swarmsible_hetzner_swarm_network_name }}"
     server: "{{ swarmsible_hetzner_manager_name_prefix | default('manager-') }}{{ item }}"
-    ip: "{{ swarmsible_hetzner_swarm_private_network | ipsubnet(4, 1) | ipaddr('(item | int) + 1') }}"
+    ip: "{{ swarmsible_hetzner_custom_private_network | ipsubnet(26, 1) | ipaddr((item | int) + 1) | ipaddr('address') }}"
     state: present
   with_sequence: start=1 end={{ swarmsible_hetzner_manager_count }}
-  when: swarmsible_hetzner_swarm_private_network_enabled | default('False') | bool
+  when: swarmsible_hetzner_custom_private_network_enabled | default('False') | bool
