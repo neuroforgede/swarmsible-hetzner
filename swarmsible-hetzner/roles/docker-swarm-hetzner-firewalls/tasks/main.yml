@@ -21,20 +21,20 @@
         protocol: tcp
         port: any
         source_ips:
-          - 192.168.0.0/16
+          - "{{ swarmsible_hetzner_custom_private_network | default('192.168.0.0/16') }}"
         description: allow all tcp traffic in private networks
 
       - direction: in
         protocol: udp
         port: any
         source_ips:
-          - 192.168.0.0/16
+          - "{{ swarmsible_hetzner_custom_private_network | default('192.168.0.0/16') }}"
         description: allow all udp traffic in private networks
 
       - direction: in
         protocol: esp
         source_ips:
-          - 192.168.0.0/16
+          - "{{ swarmsible_hetzner_custom_private_network | default('192.168.0.0/16') }}"
         description: allow all esp traffic in private networks
     state: present
   register: swarm_servers_firewall
