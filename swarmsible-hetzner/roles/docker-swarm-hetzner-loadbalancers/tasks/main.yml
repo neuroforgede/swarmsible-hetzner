@@ -24,6 +24,7 @@
     load_balancer_type: "{{ swarmsible_hetzner_loadbalancer_type }}"
     location: "{{ swarmsible_hetzner_server_location }}"
     state: present
+  when: not swarm_lb_found | bool
 
 - name: "Add swarmlb to {{ swarmsible_hetzner_swarm_network_name }} [default]"
   hetzner.hcloud.hcloud_load_balancer_network:
@@ -42,6 +43,26 @@
     ip: "{{ swarmsible_hetzner_custom_private_network | ipsubnet(26, 0) | ipaddr('2') | ipaddr('address') }}"
     state: present
   when: swarmsible_hetzner_custom_private_network_enabled | default('False') | bool
+
+- name: Enable load balancer public interface
+  hetzner.hcloud.hcloud_load_balancer:
+    api_token: "{{ hcloud_token }}"
+    name: "swarmlb"
+    load_balancer_type: "{{ swarmsible_hetzner_loadbalancer_type }}"
+    location: "{{ swarmsible_hetzner_server_location }}"
+    state: present
+    disable_public_interface: false
+  when: not swarmsible_hetzner_loadbalancer_private_only | default('False') | bool
+
+- name: Disable load balancer public interface
+  hetzner.hcloud.hcloud_load_balancer:
+    api_token: "{{ hcloud_token }}"
+    name: "swarmlb"
+    load_balancer_type: "{{ swarmsible_hetzner_loadbalancer_type }}"
+    location: "{{ swarmsible_hetzner_server_location }}"
+    state: present
+    disable_public_interface: true
+  when: swarmsible_hetzner_loadbalancer_private_only | default('False') | bool
 
 - name: Add swarm manager nodes to load balancer
   hetzner.hcloud.hcloud_load_balancer_target:
@@ -109,27 +130,43 @@
 - set_fact:
     swarm_lb_ipv4_address: "{{ swarm_lb_config[0].ipv4_address }}"
     swarm_lb_ipv6_address: "{{ swarm_lb_config[0].ipv6_address }}"
+    swarm_lb_private_ipv4_address: "{{ swarm_lb_config[0].private_ipv4_address }}"
   vars:
     swarm_lb_config: "{{ hcloud_load_balancer_info_output.hcloud_load_balancer_info | selectattr('name', 'equalto', 'swarmlb') | list }}"
 
-- name: Add configured DNS A records
+- name: "Create public DNS entries"
+  when: not swarmsible_hetzner_loadbalancer_private_only | default('False') | bool
+  block:
+    - name: Add configured DNS A records
+      community.dns.hetzner_dns_record_set:
+        state: present
+        zone: "{{ item.zone }}"
+        record: "{{ item.record }}"
+        type: A
+        ttl: "{{ item.ttl }}"
+        value: "{{ swarm_lb_ipv4_address }}"
+        hetzner_token: "{{ hetzner_dns_token }}"
+      with_items: "{{ swarmsible_hetzner_loadbalancer_dns_A }}"
+
+    - name: Add configured DNS AAAA records
+      community.dns.hetzner_dns_record_set:
+        state: present
+        zone: "{{ item.zone }}"
+        record: "{{ item.record }}"
+        type: AAAA
+        ttl: "{{ item.ttl }}"
+        value: "{{ swarm_lb_ipv6_address }}"
+        hetzner_token: "{{ hetzner_dns_token }}"
+      with_items: "{{ swarmsible_hetzner_loadbalancer_dns_AAAA }}"
+
+- name: Add configured DNS A records [private only]
   community.dns.hetzner_dns_record_set:
     state: present
     zone: "{{ item.zone }}"
     record: "{{ item.record }}"
     type: A
     ttl: "{{ item.ttl }}"
-    value: "{{ swarm_lb_ipv4_address }}"
+    value: "{{ swarm_lb_private_ipv4_address }}"
     hetzner_token: "{{ hetzner_dns_token }}"
   with_items: "{{ swarmsible_hetzner_loadbalancer_dns_A }}"
-
-- name: Add configured DNS AAAA records
-  community.dns.hetzner_dns_record_set:
-    state: present
-    zone: "{{ item.zone }}"
-    record: "{{ item.record }}"
-    type: AAAA
-    ttl: "{{ item.ttl }}"
-    value: "{{ swarm_lb_ipv6_address }}"
-    hetzner_token: "{{ hetzner_dns_token }}"
-  with_items: "{{ swarmsible_hetzner_loadbalancer_dns_AAAA }}"
+  when: swarmsible_hetzner_loadbalancer_private_only | default('False') | bool
